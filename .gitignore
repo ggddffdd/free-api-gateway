@@ -1,0 +1,14 @@
+# 不入库的敏感/产物文件
+config.yaml
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.log
+_server*.log
+.pytest_cache/
+.DS_Store
+downloads/
+*.zip
+_incoming_project.zip
+_extract_tmp/

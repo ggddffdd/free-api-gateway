@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>免费 API 统一网关 · 额度看板</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+           background: #0f1115; color: #e6e6e6; padding: 24px; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .sub { color: #8b8f98; font-size: 13px; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: #1a1d24; border: 1px solid #2a2e38; border-radius: 12px; padding: 16px; }
+    .card h3 { font-size: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .tag.mock { background: #3a2f12; color: #f0c674; }
+    .tag.real { background: #123a23; color: #6ee7a0; }
+    .tag.off { background: #3a1212; color: #f08a8a; }
+    .bar { height: 8px; background: #2a2e38; border-radius: 999px; overflow: hidden; margin: 8px 0; }
+    .bar > i { display: block; height: 100%; background: linear-gradient(90deg,#4f8cff,#6ee7a0); }
+    .meta { font-size: 12px; color: #8b8f98; line-height: 1.7; }
+    .supports span { display: inline-block; background:#232733; border-radius:6px; padding:1px 7px; margin:2px 4px 0 0; font-size:11px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #2a2e38; }
+    th { color: #8b8f98; font-weight: 500; }
+    .panel { background:#1a1d24; border:1px solid #2a2e38; border-radius:12px; padding:16px; margin-top:20px; }
+    .panel h2 { font-size:16px; margin-bottom:12px; }
+    .mock-y { color:#f0c674; } .mock-n { color:#6ee7a0; }
+  </style>
+</head>
+<body>
+  <h1>免费 API 统一网关</h1>
+  <div class="sub">统一路由 智谱 · 混元 Hy3 · 硅基流动 · 魔搭 · Agnes ｜ 当前策略：<span id="strategy">-</span> ｜ <span id="clock"></span></div>
+
+  <div class="grid" id="cards"></div>
+
+  <div class="panel">
+    <h2>异步视频任务</h2>
+    <table>
+      <thead><tr><th>task_id</th><th>模型</th><th>状态</th><th>进度</th><th>结果</th></tr></thead>
+      <tbody id="tasks"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>路由日志</h2>
+    <table>
+      <thead><tr><th>时间</th><th>模型</th><th>任务</th><th>消耗</th><th>模式</th><th>状态</th></tr></thead>
+      <tbody id="logs"></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function load() {
+      const [s, l] = await Promise.all([
+        fetch('/api/status').then(r => r.json()),
+        fetch('/api/logs').then(r => r.json()),
+      ]);
+      document.getElementById('strategy').textContent = s.strategy;
+      document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+
+      const cards = document.getElementById('cards');
+      cards.innerHTML = '';
+      s.models.forEach(m => {
+        const pct = m.daily_limit ? Math.round(m.used / m.daily_limit * 100) : 0;
+        const tag = !m.enabled ? '<span class="tag off">已禁用</span>'
+                  : m.mode === 'real' ? '<span class="tag real">真实</span>'
+                  : '<span class="tag mock">Mock</span>';
+        const sup = m.supports.map(x => `<span>${x}</span>`).join('');
+        cards.insertAdjacentHTML('beforeend', `
+          <div class="card">
+            <h3>${m.display} ${tag}</h3>
+            <div class="bar"><i style="width:${pct}%"></i></div>
+            <div class="meta">额度 ${m.used}/${m.daily_limit}（剩 ${m.remaining}）｜ 质量 ${m.quality} · 速度 ${m.speed}</div>
+            <div class="meta supports" style="margin-top:6px">${sup}</div>
+          </div>`);
+      });
+
+      const tb = document.getElementById('logs');
+      tb.innerHTML = '';
+      (l.logs || []).slice().reverse().forEach(r => {
+        tb.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${r.time}</td><td>${r.model}</td><td>${r.task}</td>
+            <td>${r.cost}</td>
+            <td class="${r.mock ? 'mock-y' : 'mock-n'}">${r.mock ? 'Mock' : '真实'}</td>
+            <td>${r.ok ? '✅' : '❌'}</td>
+          </tr>`);
+      });
+    }
+    async function loadTasks() {
+      const t = await fetch('/api/tasks').then(r => r.json());
+      const tb = document.getElementById('tasks');
+      tb.innerHTML = '';
+      (t.tasks || []).slice().reverse().forEach(r => {
+        const prog = r.progress != null ? `${r.progress}%` : '-';
+        const res = r.result ? (r.result.downloaded_to || r.result.content || '完成') : (r.error || '-');
+        tb.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${r.task_id}</td><td>${r.model}</td>
+            <td>${r.status}</td><td>${prog}</td><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${res}</td>
+          </tr>`);
+      });
+    }
+    load();
+    loadTasks();
+    setInterval(() => { load(); loadTasks(); }, 3000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    # 填了真实 key 后取消下行注释，把本地 config.yaml 挂进容器：
+    # volumes:
+    #   - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - GATEWAY_CONFIG=/app/config.example.yaml
+    restart: unless-stopped

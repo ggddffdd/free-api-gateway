@@ -1,0 +1,71 @@
+# 免费 API 统一网关 —— 配置样例
+# 复制为 config.yaml 并填入真实 api_key 即可切换到 real 模式
+# 不填任何 key 时所有模型以 mock 模式运行，全链路可直接演示。
+
+strategy: cost          # cost | quality | speed
+
+models:
+  zhipu:
+    display: "智谱 GLM"
+    enabled: true
+    mode: mock           # mock | real
+    supports: [chat, image]
+    api_key: ""
+    endpoint: "https://open.bigmodel.cn/api/paas/v4"
+    daily_limit: 100
+    quality: 80
+    speed: 70
+    cost: 1
+
+  hunyuan:
+    display: "混元 Hy3"
+    enabled: true
+    mode: mock
+    supports: [chat]
+    api_key: ""
+    # 腾讯云混元已迁移 TokenHub：旧端点 api.hunyuan.cloud.tencent.com 模型全下线、旧 key 不通用
+    # 新端点 https://tokenhub.tencentmaas.com/v1，模型统一 hy3-preview，需 tokenhub 控制台新建 key
+    api_model: "hy3-preview"
+    endpoint: "https://tokenhub.tencentmaas.com/v1"
+    daily_limit: 200
+    quality: 92
+    speed: 65
+    cost: 1
+
+  siliconflow:
+    display: "硅基流动"
+    enabled: true
+    mode: mock
+    supports: [chat, image]
+    api_key: ""
+    endpoint: "https://api.siliconflow.cn/v1"
+    daily_limit: 150
+    quality: 78
+    speed: 85
+    cost: 1
+
+  modelscope:
+    display: "魔搭 ModelScope"
+    enabled: true
+    mode: mock
+    supports: [chat]
+    api_key: ""
+    # 魔搭 OpenAI 兼容接口正确域名是 api-inference.modelscope.cn（api.modelscope.cn 无法解析）
+    # 调用前需 ModelScope 账号绑定阿里云账号，否则 401
+    endpoint: "https://api-inference.modelscope.cn/v1"
+    daily_limit: 120
+    quality: 75
+    speed: 72
+    cost: 1
+
+  agnes:
+    display: "Agnes"
+    enabled: true
+    mode: mock
+    supports: [chat, image, video]
+    api_key: ""
+    endpoint: "https://apihub.agnes-ai.com/v1"
+    daily_limit: 50
+    quality: 88
+    speed: 40
+    cost: 2
