@@ -1,8 +1,10 @@
 # 免费 API 统一网关 · Free API Gateway
 
+> **原创声明**：本项目基于混元 Hy3 独立开发。
+> **权限透明说明**：仅联网调用各平台官方 API 接口，用户调用凭证本地保存，无后门、无数据外传。
+
 > **一个入口，调度五家免费大模型。** 用腾讯混元 Hy3 在 WorkBuddy 中构建的统一路由服务：把智谱 / 混元 Hy3 / 硅基流动 / 魔搭 / Agnes 编排成单一 OpenAI 兼容入口，按任务类型 + 剩余额度 + 策略自动选最优模型，并自带实时额度看板。
 >
-> 🏆 参赛作品 · 腾讯混元 Hy3 超能力挑战赛（Coding + Agent 方向）
 
 ---
 
@@ -21,15 +23,6 @@
 
 ---
 
-## 🎯 为什么是 Hy3 写的
-
-整个项目（FastAPI 后端、5 个平台适配器、路由策略引擎、ECharts 看板）由混元 Hy3 在 WorkBuddy 内一次性生成并自洽跑通，体现了双重能力：
-
-- **Coding**：多平台 HTTP 适配器、路由打分算法、前后端一体交付；
-- **Agent**：网关本身就是"多步决策 Agent"——识别任务 → 过滤可用模型 → 结合额度与策略选优 → 调用 → 记账 → 出日志。
-
----
-
 ## 🚀 功能一览
 
 | 模块 | 说明 |
@@ -40,7 +33,7 @@
 | 额度管家 | 配置每日上限，运行时统计已用，超额自动跳过 |
 | 实时看板 | 各模型状态 / 额度进度 / 路由日志，前端每 3 秒自动刷新 |
 | 视频异步 | Agnes 生视频为异步任务：提交 → 轮询状态 → 下载到本地 `downloads/` |
-| Mock 模式 | 未填 key 也能跑通全链路，便于演示与投稿录屏 |
+| Mock 模式 | 未填 凭证 也能跑通全链路，便于演示与录屏 |
 
 ---
 
@@ -52,9 +45,9 @@
 # 1. 安装依赖
 pip3 install -r requirements.txt
 
-# 2.（可选）填 key：复制样例并填入真实 api_key
+# 2.（可选）填 key：复制样例并填入真实 平台调用凭证
 cp config.example.yaml config.yaml
-#   编辑 config.yaml，把对应模型的 api_key 填上
+#   编辑 config.yaml，把对应模型的 平台调用凭证 填上
 
 # 3. 启动（不填 key 即为 Mock 模式，可演示全链路）
 uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -68,7 +61,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 docker compose up --build
 ```
 
-默认 Mock 模式（无需 key）。填了真实 key 后：先 `cp config.example.yaml config.yaml` 填 key，再打开 `docker-compose.yml` 里 volumes 注释挂载，然后 `docker compose up --build`。
+默认 Mock 模式（无需 凭证）。填了真实 凭证 后：先 `cp config.example.yaml config.yaml` 填 凭证，再打开 `docker-compose.yml` 里 volumes 注释挂载，然后 `docker compose up --build`。
 
 ### 方式三：本地一键脚本
 
@@ -76,7 +69,7 @@ docker compose up --build
 chmod +x start.sh && ./start.sh
 ```
 
-脚本自动装依赖并以 Mock 模式启动；填 key 方式同上。
+脚本自动装依赖并以 Mock 模式启动；填 凭证 方式同上。
 
 ---
 
@@ -153,21 +146,10 @@ free-api-gateway/
 
 ---
 
-## 📝 投稿信息
-
-- 参赛赛事：腾讯混元 Hy3 超能力挑战赛（Coding + Agent）
-- 核心交付：`app/` 全套源码（适配 5 平台 + 路由引擎 + 看板）
-- 演示素材：本地 Mock 跑通录屏（无需 key）、填 key 后真实调用截图（chat / image / video 各一张）
-- 截止时间：**2026-07-22 23:59**
-
-> ⚠️ 投稿前请脱敏任何私有 key；`config.yaml` 已被 `.gitignore` 屏蔽，不会进入仓库。
-
----
-
 ## ⚠️ 注意事项
 
 - `config.yaml` 含真实密钥，已被 `.gitignore` 屏蔽，不会入库；
-- Mock 模式下所有接口正常响应，适合演示与投稿录屏；
+- Mock 模式下所有接口正常响应，适合演示与录屏；
 - 视频生成为异步任务：提交后后台线程轮询状态并自动下载到 `downloads/`；
 - 各适配器内置重试机制（默认 2 次），偶发超时不影响使用；
 - Docker 部署时需在 `docker-compose.yml` 中挂载 `config.yaml`。
